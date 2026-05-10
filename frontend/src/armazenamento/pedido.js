@@ -9,6 +9,9 @@ export const useArmazenamentoPedido = defineStore('pedido', () => {
   const carregando = ref(false)
   const erro = ref(null)
   const pedidoConfirmado = ref(null)
+  const carrinhoAberto = ref(false)
+  const toastMensagem = ref('')
+  let _toastTimer = null
 
   const quantidadeItens = computed(() =>
     itensCarrinho.value.reduce((total, item) => total + item.quantidade, 0)
@@ -31,12 +34,25 @@ export const useArmazenamentoPedido = defineStore('pedido', () => {
         precoUnitario: produto.preco
       })
     }
+    toastMensagem.value = `${produto.nome} adicionado ✓`
+    clearTimeout(_toastTimer)
+    _toastTimer = setTimeout(() => { toastMensagem.value = '' }, 2500)
   }
 
   function removerItem(produtoId) {
     const indice = itensCarrinho.value.findIndex(i => i.produtoId === produtoId)
     if (indice !== -1) {
       itensCarrinho.value.splice(indice, 1)
+    }
+  }
+
+  function diminuirQuantidade(produtoId) {
+    const item = itensCarrinho.value.find(i => i.produtoId === produtoId)
+    if (!item) return
+    if (item.quantidade > 1) {
+      item.quantidade--
+    } else {
+      removerItem(produtoId)
     }
   }
 
@@ -96,6 +112,8 @@ export const useArmazenamentoPedido = defineStore('pedido', () => {
     carregando,
     erro,
     pedidoConfirmado,
+    carrinhoAberto,
+    toastMensagem,
     quantidadeItens,
     valorTotal,
     adicionarItem,

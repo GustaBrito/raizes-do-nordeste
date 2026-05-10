@@ -117,6 +117,37 @@ describe('ArmazenamentoPedido', () => {
       .rejects.toThrow('Adicione ao menos um item')
   })
 
+  it('deve exibir toast com nome do produto ao adicionar item', () => {
+    vi.useFakeTimers()
+    const armazenamento = useArmazenamentoPedido()
+    const produto = { id: '1', nome: 'X-Nordeste', preco: 32.90 }
+
+    armazenamento.adicionarItem(produto)
+
+    expect(armazenamento.toastMensagem).toBe('X-Nordeste adicionado ✓')
+    vi.useRealTimers()
+  })
+
+  it('deve limpar toast apos 2500ms', () => {
+    vi.useFakeTimers()
+    const armazenamento = useArmazenamentoPedido()
+
+    armazenamento.adicionarItem({ id: '1', nome: 'X-Nordeste', preco: 32.90 })
+    expect(armazenamento.toastMensagem).toBe('X-Nordeste adicionado ✓')
+
+    vi.advanceTimersByTime(2500)
+    expect(armazenamento.toastMensagem).toBe('')
+    vi.useRealTimers()
+  })
+
+  it('nao deve abrir drawer automaticamente ao adicionar item', () => {
+    const armazenamento = useArmazenamentoPedido()
+
+    armazenamento.adicionarItem({ id: '1', nome: 'X-Nordeste', preco: 32.90 })
+
+    expect(armazenamento.carrinhoAberto).toBe(false)
+  })
+
   it('deve registrar erro e relancar excecao quando a API de pedido falha', async () => {
     const { default: ServicoPedido } = await import('../../src/servicos/servico-pedido')
     ServicoPedido.realizarPedido.mockRejectedValueOnce(new Error('Erro interno do servidor.'))

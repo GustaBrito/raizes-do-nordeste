@@ -1,15 +1,15 @@
 <template>
   <div id="app">
-    <NavBar v-if="mostrarNavBar" @abrirCarrinho="carrinhoAberto = true" />
+    <NavBar v-if="mostrarNavBar" @abrirCarrinho="armazenamentoPedido.carrinhoAberto = true" />
     <AvisoLgpd @consentimento-alterado="tratarConsentimento" />
     <router-view />
 
     <!-- Modal do Carrinho -->
-    <div v-if="carrinhoAberto" class="modal-overlay" @click.self="carrinhoAberto = false">
+    <div v-if="armazenamentoPedido.carrinhoAberto" class="modal-overlay" @click.self="armazenamentoPedido.carrinhoAberto = false">
       <div class="modal-carrinho">
         <div class="modal-header">
           <h3>Seu Carrinho</h3>
-          <button class="fechar-modal" @click="carrinhoAberto = false">&times;</button>
+          <button class="fechar-modal" @click="armazenamentoPedido.carrinhoAberto = false">&times;</button>
         </div>
         <div class="modal-body">
           <div v-if="armazenamentoPedido.itensCarrinho.length === 0" class="carrinho-vazio">
@@ -20,6 +20,7 @@
               <span class="item-nome">{{ item.nomeProduto }}</span>
               <span class="item-qtd">x{{ item.quantidade }}</span>
               <span class="item-preco">R$ {{ (item.precoUnitario * item.quantidade).toFixed(2) }}</span>
+              <button class="btn-remover" @click="armazenamentoPedido.removerItem(item.produtoId)" title="Remover item">×</button>
             </div>
             <div class="carrinho-total">
               <strong>Total:</strong> R$ {{ armazenamentoPedido.valorTotal.toFixed(2) }}
@@ -29,11 +30,16 @@
         </div>
       </div>
     </div>
+    <transition name="toast">
+      <div v-if="armazenamentoPedido.toastMensagem" class="toast-carrinho">
+        {{ armazenamentoPedido.toastMensagem }}
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import NavBar from './componentes/NavBar.vue'
 import AvisoLgpd from './componentes/AvisoLgpd.vue'
@@ -44,8 +50,6 @@ const route = useRoute()
 const router = useRouter()
 const armazenamentoUsuario = useArmazenamentoUsuario()
 const armazenamentoPedido = useArmazenamentoPedido()
-
-const carrinhoAberto = ref(false)
 
 const mostrarNavBar = computed(() => {
   const rotasPublicas = ['/login', '/cadastro']
@@ -59,7 +63,7 @@ function tratarConsentimento(aceito) {
 }
 
 function irParaPedido() {
-  carrinhoAberto.value = false
+  armazenamentoPedido.carrinhoAberto = false
   router.push('/pedido')
 }
 </script>
@@ -87,20 +91,36 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding-top: 80px;
+  justify-content: flex-end;
+  align-items: stretch;
   z-index: 2000;
 }
 
 .modal-carrinho {
   background: #fff;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 12px 0 0 12px;
+  width: 400px;
+  max-width: 100%;
+  height: 100vh;
+  overflow-y: auto;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.25s ease;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@media (max-width: 768px) {
+  .modal-carrinho {
+    width: 100%;
+    border-radius: 0;
+  }
 }
 
 .modal-header {
@@ -111,7 +131,8 @@ body {
   border-bottom: 1px solid #eee;
   background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
   color: #fff;
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px 0 0 0;
+  flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -128,6 +149,8 @@ body {
 
 .modal-body {
   padding: 1.5rem;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .carrinho-vazio {
@@ -159,6 +182,22 @@ body {
   color: #e67e22;
 }
 
+.btn-remover {
+  background: none;
+  border: none;
+  color: #c0392b;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0 0 0.5rem;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.btn-remover:hover {
+  opacity: 1;
+}
+
 .carrinho-total {
   display: flex;
   justify-content: space-between;
@@ -185,5 +224,31 @@ body {
 .botao-finalizar:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(230, 126, 34, 0.4);
+}
+
+.toast-carrinho {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: #2ecc71;
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 3000;
+  pointer-events: none;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
 }
 </style>
