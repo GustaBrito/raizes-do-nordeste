@@ -8,22 +8,23 @@
       <form class="cadastro-formulario" @submit.prevent="realizarCadastro">
         <div class="campo">
           <label for="nome">Nome completo</label>
-          <input id="nome" v-model="formulario.nome" type="text" required placeholder="João Silva" />
+          <input id="nome" name="nome" v-model="formulario.nome" type="text" required placeholder="João Silva" />
         </div>
 
         <div class="campo">
           <label for="email">E-mail</label>
-          <input id="email" v-model="formulario.email" type="email" required placeholder="joao@email.com" />
+          <input id="email" name="email" v-model="formulario.email" type="email" required placeholder="joao@email.com" />
         </div>
 
         <div class="campo">
           <label for="telefone">Telefone</label>
-          <input id="telefone" v-model="formulario.telefone" type="tel" placeholder="(11) 99999-9999" />
+          <input id="telefone" name="telefone" :value="formulario.telefone" @input="formatarTelefone" type="tel" placeholder="(11) 99999-9999" />
+          <span v-if="erroTelefone" class="erro-telefone" role="alert">{{ erroTelefone }}</span>
         </div>
 
         <div class="campo">
           <label for="senha">Senha</label>
-          <input id="senha" v-model="formulario.senha" type="password" required minlength="8" />
+          <input id="senha" name="senha" v-model="formulario.senha" type="password" required minlength="8" />
         </div>
 
         <!-- LGPD: Consentimento obrigatório para coleta de dados pessoais -->
@@ -42,11 +43,11 @@
           </label>
         </div>
 
-        <div v-if="mensagemErro" class="erro-mensagem" role="alert">
+        <div v-if="mensagemErro" class="erro-mensagem" role="alert" aria-live="assertive">
           {{ mensagemErro }}
         </div>
 
-        <div v-if="mensagemSucesso" class="sucesso-mensagem" role="status">
+        <div v-if="mensagemSucesso" class="sucesso-mensagem" role="status" aria-live="polite">
           {{ mensagemSucesso }}
         </div>
 
@@ -72,6 +73,7 @@ const roteador = useRouter()
 const carregando = ref(false)
 const mensagemErro = ref('')
 const mensagemSucesso = ref('')
+const erroTelefone = ref('')
 
 const formulario = reactive({
   nome: '',
@@ -81,9 +83,33 @@ const formulario = reactive({
   consentimentoLgpd: false
 })
 
+function formatarTelefone(event) {
+  const digitos = event.target.value.replace(/\D/g, '').slice(0, 11)
+  let formatted = ''
+  if (digitos.length === 0) {
+    formatted = ''
+  } else if (digitos.length <= 2) {
+    formatted = `(${digitos}`
+  } else if (digitos.length <= 6) {
+    formatted = `(${digitos.slice(0, 2)}) ${digitos.slice(2)}`
+  } else if (digitos.length <= 10) {
+    formatted = `(${digitos.slice(0, 2)}) ${digitos.slice(2, 6)}-${digitos.slice(6)}`
+  } else {
+    formatted = `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`
+  }
+  formulario.telefone = formatted
+}
+
 async function realizarCadastro() {
+  erroTelefone.value = ''
+
   if (!formulario.consentimentoLgpd) {
     mensagemErro.value = 'O consentimento com a política de privacidade é obrigatório.'
+    return
+  }
+
+  if (formulario.telefone && formulario.telefone.replace(/\D/g, '').length < 11) {
+    erroTelefone.value = 'Telefone inválido. Use o formato (XX) XXXXX-XXXX'
     return
   }
 
@@ -273,5 +299,12 @@ h1 {
 
 .cadastro-rodape a:hover {
   text-decoration: underline;
+}
+
+.erro-telefone {
+  color: #dc3545;
+  font-size: 0.85em;
+  margin-top: 4px;
+  display: block;
 }
 </style>

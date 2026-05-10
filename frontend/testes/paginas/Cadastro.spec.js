@@ -171,4 +171,85 @@ describe('Cadastro', () => {
     await roteador.isReady()
     expect(wrapper.find('a[href="/login"]').exists()).toBe(true)
   })
+
+  it('deve mostrar texto "Cadastrando..." no botao durante o carregamento', async () => {
+    ServicoAutenticacao.cadastrar.mockImplementation(() => new Promise(() => {}))
+
+    const wrapper = mount(Cadastro, {
+      global: { plugins: [roteador] }
+    })
+    await roteador.isReady()
+
+    await wrapper.find('#nome').setValue('Joao Silva')
+    await wrapper.find('#email').setValue('joao@email.com')
+    await wrapper.find('#senha').setValue('senha123')
+    await wrapper.find('#consentimento-lgpd').setValue(true)
+    wrapper.find('form').trigger('submit.prevent')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('button[type="submit"]').text()).toContain('Cadastrando...')
+  })
+
+  it('deve formatar telefone enquanto o usuário digita', async () => {
+    const wrapper = mount(Cadastro, {
+      global: { plugins: [roteador] }
+    })
+    await roteador.isReady()
+
+    const inputTelefone = wrapper.find('#telefone')
+    inputTelefone.element.value = '11999998888'
+    await inputTelefone.trigger('input')
+    await wrapper.vm.$nextTick()
+
+    expect(inputTelefone.element.value).toBe('(11) 99999-8888')
+  })
+
+  it('deve bloquear submit com telefone inválido', async () => {
+    ServicoAutenticacao.cadastrar.mockResolvedValue({})
+
+    const wrapper = mount(Cadastro, {
+      global: { plugins: [roteador] }
+    })
+    await roteador.isReady()
+
+    await wrapper.find('#nome').setValue('Joao Silva')
+    await wrapper.find('#email').setValue('joao@email.com')
+    await wrapper.find('#senha').setValue('senha123')
+    await wrapper.find('#consentimento-lgpd').setValue(true)
+
+    wrapper.find('#telefone').element.value = '(11) 999'
+    await wrapper.find('#telefone').trigger('input')
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+
+    expect(ServicoAutenticacao.cadastrar).not.toHaveBeenCalled()
+    expect(wrapper.find('.erro-telefone').exists()).toBe(true)
+  })
+
+  it('deve limpar mensagem de erro ao iniciar novo cadastro', async () => {
+    ServicoAutenticacao.cadastrar
+      .mockRejectedValueOnce(new Error('E-mail ja cadastrado.'))
+      .mockResolvedValue({})
+
+    const wrapper = mount(Cadastro, {
+      global: { plugins: [roteador] }
+    })
+    await roteador.isReady()
+
+    await wrapper.find('#nome').setValue('Joao Silva')
+    await wrapper.find('#email').setValue('joao@email.com')
+    await wrapper.find('#senha').setValue('senha123')
+    await wrapper.find('#consentimento-lgpd').setValue(true)
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+
+    expect(wrapper.find('.erro-mensagem').exists()).toBe(true)
+
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+
+    expect(wrapper.find('.erro-mensagem').exists()).toBe(false)
+  })
 })

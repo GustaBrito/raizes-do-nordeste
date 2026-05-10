@@ -68,7 +68,7 @@ onMounted(async () => {
     const clienteId = armazenamentoUsuario.dadosUsuario?.clienteId
     if (clienteId) {
       const resposta = await clienteHttp.get(`/clientes/${clienteId}/pedidos`)
-      pedidos.value = resposta.data || []
+      pedidos.value = resposta || []
     }
   } catch (erro) {
     console.error('Erro ao carregar pedidos:', erro)

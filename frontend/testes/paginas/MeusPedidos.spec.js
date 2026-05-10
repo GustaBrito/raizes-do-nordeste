@@ -36,7 +36,7 @@ describe('MeusPedidos', () => {
   })
 
   it('deve renderizar o titulo "Meus Pedidos"', async () => {
-    clienteHttp.get.mockResolvedValue({ data: [] })
+    clienteHttp.get.mockResolvedValue([])
 
     const wrapper = mount(MeusPedidos, {
       global: { plugins: [roteador] }
@@ -46,7 +46,7 @@ describe('MeusPedidos', () => {
   })
 
   it('deve exibir estado vazio quando nao ha pedidos', async () => {
-    clienteHttp.get.mockResolvedValue({ data: [] })
+    clienteHttp.get.mockResolvedValue([])
 
     const armazenamento = useArmazenamentoUsuario()
     armazenamento.dadosUsuario = { clienteId: 'cli-1' }
@@ -62,7 +62,7 @@ describe('MeusPedidos', () => {
   })
 
   it('deve exibir link para o cardapio no estado vazio', async () => {
-    clienteHttp.get.mockResolvedValue({ data: [] })
+    clienteHttp.get.mockResolvedValue([])
 
     const armazenamento = useArmazenamentoUsuario()
     armazenamento.dadosUsuario = { clienteId: 'cli-1' }
@@ -107,7 +107,7 @@ describe('MeusPedidos', () => {
         valorTotal: 32.90
       }
     ]
-    clienteHttp.get.mockResolvedValue({ data: pedidosMock })
+    clienteHttp.get.mockResolvedValue(pedidosMock)
 
     const armazenamento = useArmazenamentoUsuario()
     armazenamento.dadosUsuario = { clienteId: 'cli-1' }
@@ -133,7 +133,7 @@ describe('MeusPedidos', () => {
         valorTotal: 65.80
       }
     ]
-    clienteHttp.get.mockResolvedValue({ data: pedidosMock })
+    clienteHttp.get.mockResolvedValue(pedidosMock)
 
     const armazenamento = useArmazenamentoUsuario()
     armazenamento.dadosUsuario = { clienteId: 'cli-1' }
@@ -164,7 +164,7 @@ describe('MeusPedidos', () => {
         valorTotal: 32.90
       }
     ]
-    clienteHttp.get.mockResolvedValue({ data: pedidosMock })
+    clienteHttp.get.mockResolvedValue(pedidosMock)
 
     const armazenamento = useArmazenamentoUsuario()
     armazenamento.dadosUsuario = { clienteId: 'cli-1' }
