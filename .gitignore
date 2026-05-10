@@ -1,0 +1,62 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.csproj.user
+TestResults/
+coverage/
+backend/coverage-report-detail/
+backend/coverage-report/
+backend/coverage-results/
+backend/coverage-results-novo/
+
+# Claude AI (config local — não vai para o repo)
+.claude/
+
+# Relatórios acadêmicos e PDFs
+RELATORIO_PROJETO_QUALIDADE.md
+RELATORIO_PROJETO_QUALIDADE.pdf
+EXPLICACAO_COMPLETA_PROJETO.md
+GUIA_ESTUDO_PROJETO.md
+4644136_Projeto_Qualidade.PDF
+Roteiro*.pdf
+relatorio_temp.html
+
+# Docs de gestão de tarefas (uso interno)
+docs/tarefas/
+docs/BOARD.md
+docs/3-desenvolvendo/
+docs/1-discovery/
+docs/2-plano/
+docs/4-revisao/
+docs/5-liberado/
+docs/6-releases/
+
+# Artefatos de teste temporários
+backend/test-output.txt
+
+# Editor
+.vscode/
+
+# Variáveis de ambiente (nunca commitar)
+frontend/.env
+
+# Node / Frontend
+node_modules/
+dist/
+.vite/
+*.local
+
+# Ambientes (não commitar secrets)
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

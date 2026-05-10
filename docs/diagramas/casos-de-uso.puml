@@ -1,0 +1,92 @@
+@startuml CasosDeUso_RaizesDoNordeste
+' =====================================================
+' Diagrama de Casos de Uso — Raízes do Nordeste
+' Projeto Multidisciplinar de Qualidade de Software
+' UNINTER 2026
+' =====================================================
+
+skinparam backgroundColor #FDF6EC
+skinparam shadowing false
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #C0392B
+  ArrowColor #7A6A55
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #C0392B
+}
+
+left to right direction
+
+title **Casos de Uso — Plataforma Raízes do Nordeste**
+
+actor "Cliente\n(APP / Web / Pickup)" as Cliente
+actor "Atendente\n(Balcão / Totem)" as Atendente
+actor "Gerente da\nFranquia" as Gerente
+actor "Sistema de\nPagamento (Mock)" as Pagamento <<sistema>>
+actor "Serviço de\nFidelização" as Fidelizacao <<sistema>>
+
+rectangle "Plataforma Raízes do Nordeste" {
+  usecase "UC01 — Cadastrar Cliente\n(com consentimento LGPD)" as UC01
+  usecase "UC02 — Autenticar (Login)" as UC02
+  usecase "UC03 — Selecionar Unidade\nFranqueada" as UC03
+  usecase "UC04 — Consultar Cardápio" as UC04
+  usecase "UC05 — Realizar Pedido" as UC05
+  usecase "UC06 — Processar Pagamento" as UC06
+  usecase "UC07 — Acompanhar Status\ndo Pedido" as UC07
+  usecase "UC08 — Acumular Pontos\nde Fidelização" as UC08
+  usecase "UC09 — Resgatar Pontos" as UC09
+  usecase "UC10 — Visualizar Histórico\nde Pedidos" as UC10
+  usecase "UC11 — Exercer Direitos LGPD\n(exportar / excluir dados)" as UC11
+  usecase "UC12 — Gerenciar Promoções\nda Unidade" as UC12
+  usecase "UC13 — Atender Pedido\nno Balcão / Totem" as UC13
+}
+
+' Cliente
+Cliente --> UC01
+Cliente --> UC02
+Cliente --> UC03
+Cliente --> UC04
+Cliente --> UC05
+Cliente --> UC07
+Cliente --> UC09
+Cliente --> UC10
+Cliente --> UC11
+
+' Atendente
+Atendente --> UC02
+Atendente --> UC13
+Atendente --> UC05
+
+' Gerente
+Gerente --> UC02
+Gerente --> UC12
+
+' Sistemas
+UC06 ..> Pagamento : <<include>>
+UC05 ..> UC06 : <<include>>
+UC05 ..> UC08 : <<include>>
+UC08 ..> Fidelizacao : <<include>>
+UC09 ..> Fidelizacao : <<include>>
+UC01 ..> UC02 : <<extend>>
+
+note right of UC01
+  Consentimento LGPD obrigatório.
+  Validado na entidade Cliente
+  e na tela de cadastro.
+end note
+
+note right of UC05
+  Multicanal: APP, Web, Totem,
+  Balcão, Pickup.
+  Critério: ≤ 3 cliques.
+end note
+
+note right of UC11
+  Atende ao Art. 18 da LGPD:
+  acesso, portabilidade,
+  correção e exclusão.
+end note
+
+@enduml

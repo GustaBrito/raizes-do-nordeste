@@ -1,0 +1,96 @@
+@startuml FluxoPedido_RaizesDoNordeste
+' =====================================================
+' Diagrama de Sequência — Fluxo de Realização de Pedido
+' UNINTER 2026 — Qualidade de Software
+' =====================================================
+
+skinparam backgroundColor #FDF6EC
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #7A6A55
+  ActorBorderColor #C0392B
+  LifeLineBorderColor #C0392B
+  ParticipantBorderColor #C0392B
+  ParticipantBackgroundColor #FFFFFF
+}
+
+title **Fluxo de Sequência — Realizar Pedido (UC05)**
+
+actor Cliente
+participant "Frontend\n(Vue 3 + Pinia)" as FE
+participant "PedidosController\n(API)" as API
+participant "RealizarPedido\nCasoDeUso" as Caso
+participant "Repositorio\nPedido" as Repo
+participant "Servico\nPagamentoMock" as Pag
+participant "Servico\nFidelizacao" as Fid
+database "Banco\n(EF InMemory)" as DB
+
+== Autenticação prévia ==
+Cliente -> FE : seleciona itens do cardápio
+FE -> FE : valida ≤ 3 cliques (RNF04)
+
+== Submissão do pedido ==
+Cliente -> FE : confirma pedido
+FE -> API : POST /api/pedidos\n(Bearer JWT)
+activate API
+
+API -> API : valida token JWT
+API -> Caso : Executar(comando)
+activate Caso
+
+Caso -> Repo : ObterClientePorId
+Repo -> DB : SELECT
+DB --> Repo : Cliente
+Repo --> Caso : Cliente
+
+Caso -> Caso : criar Pedido (entidade rica)\nvalidar regras de domínio
+
+== Processamento de pagamento ==
+Caso -> Pag : ProcessarPagamento(valor)
+activate Pag
+Pag -> Pag : valida limite\n(R$ 10.000)
+Pag --> Caso : RespostaPagamento(OK)
+deactivate Pag
+
+alt pagamento aprovado
+  Caso -> Repo : Salvar(pedido)
+  Repo -> DB : INSERT pedido
+  DB --> Repo : OK
+  Repo --> Caso : OK
+
+  == Acúmulo de pontos (RF02) ==
+  Caso -> Fid : CreditarPontos(clienteId, valor)
+  activate Fid
+  Fid -> Fid : valida valor mínimo R$ 30\n1 ponto / R$
+  Fid -> DB : UPDATE saldo_pontos
+  DB --> Fid : OK
+  Fid --> Caso : pontos creditados
+  deactivate Fid
+
+  Caso --> API : PedidoCriadoDto
+  API --> FE : 201 Created\n+ id, status, pontos
+  FE --> Cliente : exibe confirmação
+else pagamento recusado
+  Caso --> API : ExcecaoPagamento
+  API --> FE : 422 Unprocessable
+  FE --> Cliente : "Pagamento indisponível.\nTente mais tarde."
+end
+
+deactivate Caso
+deactivate API
+
+note over Caso, Fid
+  Toda a orquestração é
+  feita pelo caso de uso,
+  mantendo controllers finos
+  (Clean Architecture).
+end note
+
+note over API
+  Métricas coletadas:
+  - tempo de resposta (RNF01)
+  - taxa de sucesso (RNF08)
+  - log estruturado (Observabilidade)
+end note
+
+@enduml

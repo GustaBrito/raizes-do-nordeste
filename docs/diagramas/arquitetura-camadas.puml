@@ -1,0 +1,94 @@
+@startuml ArquiteturaCamadas_RaizesDoNordeste
+' =====================================================
+' Diagrama de Arquitetura em Camadas (Clean Architecture)
+' Backend .NET 8 — Raízes do Nordeste
+' UNINTER 2026 — Qualidade de Software
+' =====================================================
+
+skinparam backgroundColor #FDF6EC
+skinparam shadowing false
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #C0392B
+  ArrowColor #7A6A55
+}
+skinparam package {
+  BackgroundColor #FFF8E8
+  BorderColor #E67E22
+}
+
+title **Arquitetura em Camadas — Backend .NET 8 (Clean Architecture)**
+
+package "Apresentação" as P1 {
+  package "RaizesDoNordeste.API" {
+    [ClientesController]
+    [PedidosController]
+    [AutenticacaoController]
+    [FidelizacaoController]
+    [Program.cs\n(DI + JWT + Swagger)]
+  }
+}
+
+package "Aplicação" as P2 {
+  package "RaizesDoNordeste.Aplicacao" {
+    [CadastrarClienteCasoDeUso]
+    [AutenticarClienteCasoDeUso]
+    [RealizarPedidoCasoDeUso]
+    [DTOs\n(Login, Token, Pedido, Cliente)]
+  }
+}
+
+package "Domínio" as P3 {
+  package "RaizesDoNordeste.Dominio" {
+    [Entidades\n(Cliente, Pedido, ItemPedido,\nProduto, Franquia)]
+    [Enumerações\n(StatusPedido, CanalAtendimento)]
+    [Interfaces\n(IRepositorio*, IServico*)]
+    [Exceções de Domínio]
+  }
+}
+
+package "Infraestrutura" as P4 {
+  package "RaizesDoNordeste.Infraestrutura" {
+    [ContextoBancoDados\n(EF Core InMemory)]
+    [RepositorioCliente]
+    [RepositorioPedido]
+    [ServicoPagamentoMock]
+    [ServicoFidelizacao]
+  }
+}
+
+package "Testes" as P5 {
+  [Testes.Unitarios\n(xUnit + Moq + FluentAssertions)]
+  [Testes.Integracao\n(WebApplicationFactory)]
+}
+
+' Dependências (regra: setas apontam para dentro)
+P1 --> P2 : usa
+P2 --> P3 : usa
+P4 --> P3 : implementa interfaces
+P1 --> P4 : injeção de dependência
+P5 ..> P1 : testa
+P5 ..> P2 : testa
+P5 ..> P3 : testa
+
+note right of P3
+  **Núcleo do negócio**
+  Sem dependências externas.
+  Entidades ricas com regras
+  encapsuladas (DDD).
+end note
+
+note left of P4
+  Detalhes técnicos isolados.
+  Pode ser substituído sem
+  afetar o domínio (ex: trocar
+  EF Core por Dapper).
+end note
+
+note bottom of P5
+  Cobertura ≥ 80% (RNF07).
+  Backend: 23+ testes unitários
+  + testes de integração HTTP.
+end note
+
+@enduml
