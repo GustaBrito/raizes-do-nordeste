@@ -18,7 +18,7 @@
 
         <div class="campo">
           <label for="telefone">Telefone</label>
-          <input id="telefone" name="telefone" :value="formulario.telefone" @input="formatarTelefone" type="tel" placeholder="(11) 99999-9999" />
+          <input id="telefone" name="telefone" :value="formulario.telefone" @input="formatarTelefone" type="tel" placeholder="(11) 99999-9999" maxlength="15" />
           <span v-if="erroTelefone" class="erro-telefone" role="alert">{{ erroTelefone }}</span>
         </div>
 
@@ -98,6 +98,7 @@ function formatarTelefone(event) {
     formatted = `(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`
   }
   formulario.telefone = formatted
+  event.target.value = formatted
 }
 
 async function realizarCadastro() {
